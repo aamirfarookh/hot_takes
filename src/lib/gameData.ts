@@ -1,0 +1,527 @@
+/**
+ * Closet Items, Slot Definitions, Disruptions & Probes
+ * "Limited Closet" Budget-Allocation Trade-Off Game
+ * 
+ * DESIGN PRINCIPLE: Equal weighting rule.
+ * Sustainability chips have identical styling, placement, and visual weight
+ * as price, fit, brand, and fabric chips. No green highlights or leaf icons.
+ */
+
+import { ProductCard, ClosetSlotCategory, DisruptionEventConfig } from "@/types/game";
+
+export const INITIAL_BUDGET = 3000; // ₹3,000 INR
+
+export interface SlotDefinition {
+  id: ClosetSlotCategory;
+  name: string;
+  order: number;
+  expectedMedianTimeMs: number;
+  items: ProductCard[];
+  evaluatorSlotPurpose: string;
+}
+
+export const CLOSET_SLOTS: SlotDefinition[] = [
+  // SLOT 1: TOP
+  {
+    id: "top",
+    name: "Tops & Shirts",
+    order: 0,
+    expectedMedianTimeMs: 8000,
+    evaluatorSlotPurpose:
+      "Slot 1 measures initial baseline priority: Does the user pay a ₹300 premium for GOTS organic linen (₹599), get fooled by the 'Eco-inspired' decoy (₹449), or save budget on fast fashion (₹299)?",
+    items: [
+      {
+        id: "top_sustainable",
+        name: "Handloom Linen Shirt",
+        category: "top",
+        price: 599,
+        styleTag: "Clean Minimalist",
+        brandName: "Kavya Atelier",
+        brandFamiliarity: "Artisan Studio",
+        sustainabilityTier: "certified_sustainable",
+        sustainabilityAttribute: "Organic linen",
+        certification: "GOTS & Fair-Wage Audit #IND-2024",
+        imageEmoji: "👔",
+        illustrationType: "shirt",
+        attributeChips: ["100% Linen", "Relaxed Fit", "Organic linen"],
+        description: "Zero synthetic pesticides, hand-spun by fair-wage artisan cooperatives.",
+        evaluatorRole: "certified_sustainable",
+        evaluatorNote: "Verified GOTS Certified (+₹300 premium over fast fashion). Measures authentic willingness to pay.",
+      },
+      {
+        id: "top_greenwash",
+        name: "Botanical Dye Tee",
+        category: "top",
+        price: 449,
+        styleTag: "Everyday Regular",
+        brandName: "Urban Loom",
+        brandFamiliarity: "Mass Retailer",
+        sustainabilityTier: "greenwashed_decoy",
+        sustainabilityAttribute: "Eco-inspired",
+        imageEmoji: "👕",
+        illustrationType: "tee",
+        attributeChips: ["Cotton blend", "Regular Fit", "Eco-inspired"],
+        description: "Nature-inspired collection with earthy hues. No independent third-party audit.",
+        evaluatorRole: "greenwashed_decoy",
+        evaluatorNote: "Greenwash decoy. Vague buzzword ('Eco-inspired'). Tests susceptibility to unverified marketing.",
+      },
+      {
+        id: "top_fast",
+        name: "Graphic Boxy Jersey",
+        category: "top",
+        price: 299,
+        styleTag: "Streetwear Essential",
+        brandName: "Verve Studio",
+        brandFamiliarity: "Global Fast-Fashion Icon",
+        sustainabilityTier: "conventional_fast",
+        sustainabilityAttribute: "Virgin polyester",
+        imageEmoji: "🎽",
+        illustrationType: "tee",
+        attributeChips: ["Heavyweight Poly", "Boxy Fit", "Synthetic weave"],
+        description: "High trend turnover, viral silhouette, rapid chemical dye manufacturing.",
+        evaluatorRole: "fast_fashion",
+        evaluatorNote: "Fast fashion (₹299). Tests price optimization and trend appeal over ethics.",
+      },
+      {
+        id: "top_luxury_reverse",
+        name: "Lustre Satin Blouse",
+        category: "top",
+        price: 699,
+        styleTag: "Tailored Evening",
+        brandName: "Atelier 91",
+        brandFamiliarity: "Cult Streetwear Brand",
+        sustainabilityTier: "conventional_fast",
+        sustainabilityAttribute: "Petroleum satin",
+        isReverseFramed: true,
+        imageEmoji: "✨",
+        illustrationType: "shirt",
+        attributeChips: ["High-Gloss Satin", "Fitted Cut", "Dry clean only"],
+        description: "High price point with conventional non-recyclable synthetic petrochemical satin.",
+        evaluatorRole: "reverse_frame_trap",
+        evaluatorNote: "Reverse-frame trap: High price (₹699) with toxic petroleum satin. Catches heuristic 'expensive = ethical' assumption.",
+      },
+    ],
+  },
+
+  // SLOT 2: BOTTOM
+  {
+    id: "bottom",
+    name: "Bottoms & Pants",
+    order: 1,
+    expectedMedianTimeMs: 7500,
+    evaluatorSlotPurpose:
+      "Slot 2 tests trade-off durability: Recycled vintage denim (₹699) vs. Earth-wash decoy (₹499) vs. Tactical Cargo (₹349). Followed by Disruption 1 (Flash Drop).",
+    items: [
+      {
+        id: "bottom_sustainable",
+        name: "Selvedge Raw Denim",
+        category: "bottom",
+        price: 699,
+        styleTag: "Straight Taper",
+        brandName: "Neev Collective",
+        brandFamiliarity: "Artisan Studio",
+        sustainabilityTier: "certified_sustainable",
+        sustainabilityAttribute: "Recycled denim",
+        certification: "GRS Standard 4.0 / Waterless Wash",
+        imageEmoji: "👖",
+        illustrationType: "denim",
+        attributeChips: ["13oz Selvedge", "Straight Taper", "Recycled denim"],
+        description: "Post-consumer recycled cotton woven on vintage shuttle looms with waterless wash.",
+        evaluatorRole: "certified_sustainable",
+        evaluatorNote: "Verified GRS Recycled Cotton (₹699). Substantial budget commitment.",
+      },
+      {
+        id: "bottom_greenwash",
+        name: "Terra Comfort Chino",
+        category: "bottom",
+        price: 499,
+        styleTag: "Smart Casual",
+        brandName: "Urban Loom",
+        brandFamiliarity: "Mass Retailer",
+        sustainabilityTier: "greenwashed_decoy",
+        sustainabilityAttribute: "Earth-wash tone",
+        imageEmoji: "🩳",
+        illustrationType: "pants",
+        attributeChips: ["Stretch Twill", "Slim Fit", "Earth-wash tone"],
+        description: "Marketed with recycled paper hangtags. Standard chemical-dyed virgin cotton.",
+        evaluatorRole: "greenwashed_decoy",
+        evaluatorNote: "Greenwash decoy: Kraft-paper tag aesthetic with standard virgin chemical-dyed cotton.",
+      },
+      {
+        id: "bottom_fast",
+        name: "Tactical Utility Cargo",
+        category: "bottom",
+        price: 349,
+        styleTag: "Streetwear Essential",
+        brandName: "Verve Studio",
+        brandFamiliarity: "Global Fast-Fashion Icon",
+        sustainabilityTier: "conventional_fast",
+        sustainabilityAttribute: "Standard nylon-poly",
+        imageEmoji: "🪖",
+        illustrationType: "pants",
+        attributeChips: ["6-Pocket Twill", "Relaxed Cut", "Standard poly"],
+        description: "Multi-pocket tactical fit, chemical wash treatment, rapid factory turnover.",
+        evaluatorRole: "fast_fashion",
+        evaluatorNote: "Low-cost fast-fashion cargo pants (₹349).",
+      },
+    ],
+  },
+
+  // SLOT 3: OUTERWEAR
+  {
+    id: "outerwear",
+    name: "Jackets & Layers",
+    order: 2,
+    expectedMedianTimeMs: 8500,
+    evaluatorSlotPurpose:
+      "Slot 3 measures high-ticket allocation: Recycled Ocean Parka (₹799) vs. Breeze Windbreaker decoy (₹599) vs. Faux-Leather Biker (₹449). Disruption 1 slashes Biker to ₹225.",
+    items: [
+      {
+        id: "outer_sustainable",
+        name: "Recycled Utility Parka",
+        category: "outerwear",
+        price: 799,
+        styleTag: "Technical Layer",
+        brandName: "Atlas Wear",
+        brandFamiliarity: "Cult Streetwear Brand",
+        sustainabilityTier: "certified_sustainable",
+        sustainabilityAttribute: "Recycled ocean nylon",
+        certification: "OceanCycle Certified & OEKO-TEX 100",
+        imageEmoji: "🧥",
+        illustrationType: "jacket",
+        attributeChips: ["Weatherproof", "Modular Hood", "Recycled nylon"],
+        description: "Diverts 45 ocean-bound plastic bottles. Includes complimentary lifetime repair service.",
+        evaluatorRole: "certified_sustainable",
+        evaluatorNote: "Verified Ocean-Bound Plastic Certified (₹799). Premium hero piece with lifetime repair.",
+      },
+      {
+        id: "outer_greenwash",
+        name: "Breeze Windbreaker",
+        category: "outerwear",
+        price: 599,
+        styleTag: "Sport Minimal",
+        brandName: "Urban Loom",
+        brandFamiliarity: "Mass Retailer",
+        sustainabilityTier: "greenwashed_decoy",
+        sustainabilityAttribute: "Green Future tag",
+        imageEmoji: "🥼",
+        illustrationType: "jacket",
+        attributeChips: ["Ultralight Shell", "Zip Packable", "Green Future tag"],
+        description: "Tagged under 'Green Living Collection'. Contains under 3% recycled trim lining.",
+        evaluatorRole: "greenwashed_decoy",
+        evaluatorNote: "Greenwash decoy: Vague 'Green Future' line with less than 3% recycled trim.",
+      },
+      {
+        id: "outer_fast",
+        name: "Faux-Leather Biker",
+        category: "outerwear",
+        price: 449,
+        styleTag: "Cropped Oversized",
+        brandName: "Verve Studio",
+        brandFamiliarity: "Global Fast-Fashion Icon",
+        sustainabilityTier: "conventional_fast",
+        sustainabilityAttribute: "Synthetic PVC",
+        imageEmoji: "🏍️",
+        illustrationType: "jacket",
+        attributeChips: ["Heavy PVC Shell", "Cropped Cut", "Virgin synthetic"],
+        description: "Statement biker silhouette, non-biodegradable polyurethane, synthetic lining.",
+        evaluatorRole: "fast_fashion",
+        evaluatorNote: "Fast-fashion PVC jacket (₹449). Target of 50% Flash Drop (slashed to ₹225).",
+      },
+    ],
+  },
+
+  // SLOT 4: FOOTWEAR
+  {
+    id: "footwear",
+    name: "Footwear & Shoes",
+    order: 3,
+    expectedMedianTimeMs: 8000,
+    evaluatorSlotPurpose:
+      "Slot 4 embeds the Disguised Attention Check Probe: Disguised calibration slip-on (₹299) tests whether participant reads details or speedruns.",
+    items: [
+      {
+        id: "foot_sustainable",
+        name: "Tree Rubber Court Sneaker",
+        category: "footwear",
+        price: 699,
+        styleTag: "Classic Court",
+        brandName: "Kavya Atelier",
+        brandFamiliarity: "Artisan Studio",
+        sustainabilityTier: "certified_sustainable",
+        sustainabilityAttribute: "FSC wild rubber",
+        certification: "FSC Forest Stewardship & PETA Vegan",
+        imageEmoji: "👟",
+        illustrationType: "shoe",
+        attributeChips: ["Organic Twill", "Cup Sole", "FSC wild rubber"],
+        description: "Naturally tapped wild latex tree soles without petrochemical vulcanization.",
+        evaluatorRole: "certified_sustainable",
+        evaluatorNote: "Verified FSC Natural Wild Tree Rubber & Organic Twill (₹699).",
+      },
+      {
+        id: "foot_greenwash",
+        name: "Cloud Foam Trainer",
+        category: "footwear",
+        price: 499,
+        styleTag: "Everyday Walker",
+        brandName: "Urban Loom",
+        brandFamiliarity: "Mass Retailer",
+        sustainabilityTier: "greenwashed_decoy",
+        sustainabilityAttribute: "Planet-kind sole",
+        imageEmoji: "🥿",
+        illustrationType: "shoe",
+        attributeChips: ["Breathable Mesh", "Cushioned", "Planet-kind sole"],
+        description: "Contains 5% reground scrap foam in the insole. Upper is virgin petroleum mesh.",
+        evaluatorRole: "greenwashed_decoy",
+        evaluatorNote: "Greenwash decoy: 'Planet-kind' foam claims hiding 95% virgin synthetic construction.",
+      },
+      {
+        id: "foot_fast",
+        name: "Platform Retro Runner",
+        category: "footwear",
+        price: 349,
+        styleTag: "Chunky Silhouette",
+        brandName: "Verve Studio",
+        brandFamiliarity: "Global Fast-Fashion Icon",
+        sustainabilityTier: "conventional_fast",
+        sustainabilityAttribute: "EVA & synthetic",
+        imageEmoji: "🩴",
+        illustrationType: "shoe",
+        attributeChips: ["Chunky Midsole", "Reflective Trim", "Synthetic mesh"],
+        description: "Statement silhouette, rapid tread wear, non-recyclable composite glue build.",
+        evaluatorRole: "fast_fashion",
+        evaluatorNote: "Conventional high-trend chunky sneaker (₹349).",
+      },
+      {
+        id: "foot_attention_check",
+        name: "Calibration Slip-On",
+        category: "footwear",
+        price: 299,
+        styleTag: "Standard Loafer",
+        brandName: "Atlas Wear",
+        brandFamiliarity: "Mass Retailer",
+        sustainabilityTier: "conventional_fast",
+        sustainabilityAttribute: "Verification probe",
+        isAttentionCheck: true,
+        imageEmoji: "👞",
+        illustrationType: "shoe",
+        attributeChips: ["Plain Canvas", "Slip-on", "Verification item"],
+        description: "Quality probe: Select this item to confirm human review.",
+        evaluatorRole: "attention_probe",
+        evaluatorNote: "Disguised Attention Check: Selecting this card proves respondent actively reads item text (+25 RQS points).",
+      },
+    ],
+  },
+
+  // SLOT 5: ACCESSORY
+  {
+    id: "accessory",
+    name: "Bags & Accessories",
+    order: 4,
+    expectedMedianTimeMs: 6500,
+    evaluatorSlotPurpose:
+      "Slot 5 tests Marginal Willingness-to-Pay under Disruption 3: An unexpected ₹100 eco-surcharge is added to the upcycled bag, testing the price breaking point.",
+    items: [
+      {
+        id: "acc_sustainable",
+        name: "Upcycled Canvas Tote",
+        category: "accessory",
+        price: 399,
+        styleTag: "Heritage Carry",
+        brandName: "Kavya Atelier",
+        brandFamiliarity: "Artisan Studio",
+        sustainabilityTier: "certified_sustainable",
+        sustainabilityAttribute: "Upcycled canvas",
+        certification: "Verified B-Corp Supply Chain",
+        imageEmoji: "🎒",
+        illustrationType: "bag",
+        attributeChips: ["Heavy Duty", "Brass Rivets", "Upcycled canvas"],
+        description: "Salvaged industrial canvas with recycled cast brass hardware. Lifetime warranty.",
+        evaluatorRole: "certified_sustainable",
+        evaluatorNote: "Verified Upcycled Military Canvas (₹399). Tests if user still pays premium after ₹100 raw-material surge.",
+      },
+      {
+        id: "acc_greenwash",
+        name: "Flora Weave Pouch",
+        category: "accessory",
+        price: 299,
+        styleTag: "Casual Crossbody",
+        brandName: "Urban Loom",
+        brandFamiliarity: "Mass Retailer",
+        sustainabilityTier: "greenwashed_decoy",
+        sustainabilityAttribute: "Natural weave vibe",
+        imageEmoji: "👜",
+        illustrationType: "bag",
+        attributeChips: ["Crossbody Strap", "Zip Pocket", "Natural weave vibe"],
+        description: "Printed with botanical motifs. Standard virgin nylon strap and zinc hardware.",
+        evaluatorRole: "greenwashed_decoy",
+        evaluatorNote: "Greenwash decoy: Botanical aesthetic on standard virgin nylon.",
+      },
+      {
+        id: "acc_fast",
+        name: "Corduroy Cap & Chain Set",
+        category: "accessory",
+        price: 199,
+        styleTag: "Streetwear Essential",
+        brandName: "Verve Studio",
+        brandFamiliarity: "Global Fast-Fashion Icon",
+        sustainabilityTier: "conventional_fast",
+        sustainabilityAttribute: "Acrylic & alloy",
+        imageEmoji: "🧢",
+        illustrationType: "bag",
+        attributeChips: ["Adjustable Fit", "Layered Chain", "Acrylic blend"],
+        description: "Affordable accessory pack, rapid trend cycle, non-recyclable nickel finish.",
+        evaluatorRole: "fast_fashion",
+        evaluatorNote: "Budget fast-fashion accessory combo (₹199).",
+      },
+    ],
+  },
+];
+
+/**
+ * Mid-Game Disruptions to test Price Elasticity of Sustainability
+ */
+export const MID_GAME_DISRUPTIONS: DisruptionEventConfig[] = [
+  {
+    id: "flash_sale",
+    title: "Flash Drop",
+    subtitle: "50% off the Biker Jacket for 60 seconds",
+    triggerAfterSlotIndex: 1, // Appears after picking Bottoms, before Outerwear
+    description:
+      "A limited flash drop just slashed the price of the Faux-Leather Biker Jacket from ₹449 down to ₹225. Would you like to claim the discount or keep standard choices?",
+    impactType: "discount",
+    impactDetails: {
+      targetSlot: "outerwear",
+      targetTier: "conventional_fast",
+      amount: 224,
+      explanation: "Tests whether high price elasticity overrides ethical intentions when sudden bargains appear.",
+    },
+    options: [
+      {
+        id: "take_discount",
+        label: "Claim ₹224 Discount",
+        description: "Save budget by choosing the fast-fashion piece at ₹225.",
+        action: "accept_switch",
+      },
+      {
+        id: "decline_discount",
+        label: "Keep Standard Choices",
+        description: "Proceed with standard curated catalog.",
+        action: "keep_choice",
+      },
+    ],
+  },
+  {
+    id: "budget_cut",
+    title: "Surcharge Notice",
+    subtitle: "Unexpected delivery fee (₹250)",
+    triggerAfterSlotIndex: 2, // Appears after Outerwear, before Footwear
+    description:
+      "A mandatory logistics handling fee of ₹250 was applied to your capsule order. Your remaining budget has been adjusted.",
+    impactType: "budget_reduction",
+    impactDetails: {
+      amount: 250,
+      explanation: "Observes whether sustainability is the first attribute abandoned when economic constraint tightens.",
+    },
+    options: [
+      {
+        id: "absorb_cut",
+        label: "Accept & Adjust Curation",
+        description: "Continue with the remaining tighter budget limit.",
+        action: "absorb_cut",
+      },
+    ],
+  },
+  {
+    id: "premium_hike",
+    title: "Supply Update",
+    subtitle: "Upcycled Canvas Surcharge (+₹100)",
+    triggerAfterSlotIndex: 3, // Appears before Accessory
+    description:
+      "Due to limited artisan textile supply, the upcycled canvas tote has a ₹100 raw-material surcharge. Do you wish to pay the higher premium?",
+    impactType: "price_surge",
+    impactDetails: {
+      targetSlot: "accessory",
+      targetTier: "certified_sustainable",
+      amount: 100,
+      explanation: "Tests the exact marginal willingness-to-pay threshold for sustainability.",
+    },
+    options: [
+      {
+        id: "accept_surge",
+        label: "Proceed with Updated Price",
+        description: "Accept the trade-off for the verified craft piece (now ₹499).",
+        action: "keep_choice",
+      },
+    ],
+  },
+];
+
+/**
+ * Consistency Probe (Repeated Scenario with Swapped Card Positions)
+ */
+export const CONSISTENCY_PROBE_SLOT: SlotDefinition = {
+  id: "top",
+  name: "Wardrobe Style Verification",
+  order: 5,
+  expectedMedianTimeMs: 6000,
+  evaluatorSlotPurpose:
+    "Consistency Probe: Inverts card presentation positions (Fast Fashion is now #1, Greenwash is #2, Sustainable is #3). Tests whether the user picks the identical item or is clicking arbitrarily by screen position.",
+  items: [
+    // Position 0: Fast Fashion (was Position 2)
+    {
+      id: "top_fast",
+      name: "Graphic Boxy Jersey",
+      category: "top",
+      price: 299,
+      styleTag: "Streetwear Essential",
+      brandName: "Verve Studio",
+      brandFamiliarity: "Global Fast-Fashion Icon",
+      sustainabilityTier: "conventional_fast",
+      sustainabilityAttribute: "Virgin polyester",
+      imageEmoji: "🎽",
+      illustrationType: "tee",
+      attributeChips: ["Heavyweight Poly", "Boxy Fit", "Synthetic weave"],
+      description: "High trend turnover, viral silhouette, rapid chemical dye manufacturing.",
+      evaluatorRole: "fast_fashion",
+      evaluatorNote: "Repeated option in swapped position #1 (₹299).",
+    },
+    // Position 1: Greenwashed Decoy
+    {
+      id: "top_greenwash",
+      name: "Botanical Dye Tee",
+      category: "top",
+      price: 449,
+      styleTag: "Everyday Regular",
+      brandName: "Urban Loom",
+      brandFamiliarity: "Mass Retailer",
+      sustainabilityTier: "greenwashed_decoy",
+      sustainabilityAttribute: "Eco-inspired",
+      imageEmoji: "👕",
+      illustrationType: "tee",
+      attributeChips: ["Cotton blend", "Regular Fit", "Eco-inspired"],
+      description: "Nature-inspired collection with earthy hues. No independent third-party audit.",
+      evaluatorRole: "greenwashed_decoy",
+      evaluatorNote: "Repeated greenwashed decoy in swapped position #2 (₹449).",
+    },
+    // Position 2: Certified Sustainable (was Position 0)
+    {
+      id: "top_sustainable",
+      name: "Handloom Linen Shirt",
+      category: "top",
+      price: 599,
+      styleTag: "Clean Minimalist",
+      brandName: "Kavya Atelier",
+      brandFamiliarity: "Artisan Studio",
+      sustainabilityTier: "certified_sustainable",
+      sustainabilityAttribute: "Organic linen",
+      certification: "GOTS & Fair-Wage Audit #IND-2024",
+      imageEmoji: "👔",
+      illustrationType: "shirt",
+      attributeChips: ["100% Linen", "Relaxed Fit", "Organic linen"],
+      description: "Zero synthetic pesticides, hand-spun by fair-wage artisan cooperatives.",
+      evaluatorRole: "certified_sustainable",
+      evaluatorNote: "Repeated sustainable shirt in swapped position #3 (₹599). If picked again, passes consistency (+20 RQS points).",
+    },
+  ],
+};
